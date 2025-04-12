@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Saldos por Coletor</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    .saldo {
+      font-weight: bold;
+      color: green;
+    }
+    .sem-permissao {
+      color: #888;
+      font-style: italic;
+    }
+    .titulo {
+      margin-top: 40px;
+    }
+    th, td {
+      font-size: 1.2rem;
+    }
+    th {
+      font-size: 1.3rem;
+    }
+  </style>
+</head>
+<body class="container mt-5">
+
+  <h1 class="text-center">Saldos por Coletor</h1>
+
+  <div class="text-end mb-4">
+  <a href="{% url 'relatorio_financeiro' %}" class="btn btn-warning">
+    Ver Relatório Financeiro
+  </a>
+</div>
+
+
+  <form method="get" class="my-4 d-flex" role="search">
+    <input type="text" name="filtro" class="form-control me-2" placeholder="Buscar coletor por nome..." value="{{ filtro }}">
+    <button type="submit" class="btn btn-outline-primary">Buscar</button>
+  </form>
+  
+
+  <div class="titulo">
+    <h3>Cooperados</h3>
+  </div>
+
+  <table class="table table-striped table-bordered">
+    <thead class="table-success">
+      <tr>
+        <th>Nome</th>
+        {% if not eh_operador_basico %}
+        <th>Documento</th>
+        <th>Saldo</th>
+        {% else %}
+        <th>Informações</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in saldos_cooperados %}
+      <tr>
+        <td>{{ item.nome }}</td>
+        {% if not eh_operador_basico %}
+        <td>{{ item.documento }}</td>
+        <td class="saldo">R$ {{ item.saldo|floatformat:2 }}</td>
+        {% else %}
+        <td class="sem-permissao" colspan="2">Sem permissão para ver dados financeiros</td>
+        {% endif %}
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">Nenhum cooperado encontrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="titulo">
+    <h3>Munícipes</h3>
+  </div>
+
+  <table class="table table-striped table-bordered">
+    <thead class="table-primary">
+      <tr>
+        <th>Nome</th>
+        {% if not eh_operador_basico %}
+        <th>Documento</th>
+        <th>Saldo</th>
+        {% else %}
+        <th>Informações</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in saldos_municipes %}
+      <tr>
+        <td>{{ item.nome }}</td>
+        {% if not eh_operador_basico %}
+        <td>{{ item.documento }}</td>
+        <td class="saldo">R$ {{ item.saldo|floatformat:2 }}</td>
+        {% else %}
+        <td class="sem-permissao" colspan="2">Sem permissão para ver dados financeiros</td>
+        {% endif %}
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">Nenhum munícipe encontrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if not eh_operador_basico %}
+  <div class="titulo">
+    <h3 class="text-center">Gráfico de Saldos</h3>
+    <canvas id="graficoSaldos" height="100"></canvas>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('graficoSaldos').getContext('2d');
+    const graficoSaldos = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [
+          {% for item in saldos_cooperados %}'{{ item.nome }}',{% endfor %}
+          {% for item in saldos_municipes %}'{{ item.nome }}',{% endfor %}
+        ],
+        datasets: [{
+          label: 'Saldo R$',
+          data: [
+            {% for item in saldos_cooperados %}{{ item.saldo }},{% endfor %}
+            {% for item in saldos_municipes %}{{ item.saldo }},{% endfor %}
+          ],
+          backgroundColor: '#198754',
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return ' R$ ' + context.raw.toFixed(2);
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return 'R$ ' + value;
+              }
+            }
+          }
+        }
+      }
+    });
+  </script>
+  {% endif %}
+
+</body>
+</html>

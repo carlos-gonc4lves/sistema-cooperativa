@@ -1,0 +1,15 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+  <div style="margin-bottom: 20px;">
+    <a href="{% url 'saldo_por_coletor' %}">
+      <button style="padding: 10px 20px; background-color: #2e6da4; color: white; border: none; border-radius: 5px;">
+        Ver Saldo por Coletor
+      </button>
+    </a>
+  </div>
+
+  {{ block.super }}
+{% endblock %}
+
